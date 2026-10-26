@@ -40,6 +40,7 @@ CACHES = {
 }
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'store.middleware.LanguageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
