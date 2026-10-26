@@ -1,1 +1,1 @@
-web: gunicorn zad.wsgi:application
+web: gunicorn store.wsgi:application
