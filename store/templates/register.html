@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}إنشاء حساب جديد | زاد للمنتجات العشبية{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow border-0 p-4 rounded-4 bg-white">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-success">إنشاء حساب جديد</h3>
+                    <p class="text-muted small">املأ البيانات أدناه لتسجيل حسابك في متجر زاد</p>
+                </div>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small py-2 rounded-3">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary small">الاسم الكامل</label>
+                        {{ form.first_name }}
+                        {{ form.first_name.errors }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary small">البريد الإلكتروني</label>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary small">رقم الهاتف الإماراتي</label>
+                        {{ form.phone }}
+                        <small class="text-muted d-block mt-1" style="font-size: 11px;">مثال: 0501234567</small>
+                        {{ form.phone.errors }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary small">الإمارة</label>
+                        {{ form.emirate }}
+                        {{ form.emirate.errors }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary small">كلمة المرور</label>
+                        {{ form.password1 }}
+                        {{ form.password1.errors }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-secondary small">تأكيد كلمة المرور</label>
+                        {{ form.password2 }}
+                        {{ form.password2.errors }}
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2.5 fw-bold rounded-3 shadow-sm">
+                        <i class="fas fa-user-plus me-1"></i> تسجيل الحساب
+                    </button>
+                </form>
+
+                <div class="mt-4 text-center small text-muted border-top pt-3">
+                    لديك حساب بالفعل؟ <a href="{% url 'login_view' %}" class="text-success fw-bold text-decoration-none">سجل دخولك من هنا</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

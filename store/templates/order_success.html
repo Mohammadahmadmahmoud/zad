@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}إتمام الطلب | زاد للمنتجات العشبية{% endblock %}
+
+{% block content %}
+<div class="container my-5 text-center">
+    <div class="card shadow-sm border-0 rounded-4 p-5 bg-white mx-auto" style="max-width: 600px;">
+        <div class="mb-4">
+            <i class="fas fa-check-circle text-success fa-4x"></i>
+        </div>
+        <h2 class="fw-bold text-success mb-3">شكراً لك! تم استلام طلبك بنجاح</h2>
+        <p class="text-muted mb-4">تم تسجيل طلبك وتأكيد عملية الخصم من المخزون بنجاح. سيتم التواصل معك قريباً لتأكيد الشحن والدفع عند الاستلام.</p>
+        
+        <div class="p-3 bg-light rounded-3 mb-4 border">
+            <span class="text-muted small d-block mb-1">رقم التتبع الخاص بك:</span>
+            <span class="fw-bold fs-4 text-dark font-monospace">{{ tracking_number }}</span>
+        </div>
+
+        <div>
+            <a href="{% url 'home_view' %}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                <i class="fas fa-home me-1"></i> العودة للرئيسية
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

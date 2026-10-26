@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="{% if lang == 'en' %}en{% else %}ar{% endif %}" dir="{% if lang == 'en' %}ltr{% else %}rtl{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <title>Receipt #{{ order.tracking_number }}</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0 auto; padding: 10px; background: #fff; color: #000; }
+        .text-center { text-align: center; }
+        .divider { border-top: 1px dashed #000; margin: 10px 0; }
+        table { width: 100%; font-size: 12px; border-collapse: collapse; }
+        th, td { padding: 4px 0; text-align: inherit; }
+        .print-btn { display: block; width: 100%; padding: 10px; background: #198754; color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 15px; border-radius: 5px; }
+        @media print { .print-btn { display: none; } body { width: 100%; padding: 0; } }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <div class="text-center">
+        <h3 style="margin: 0;">ZAD HERBAL / زاد للمنتجات العشبية</h3>
+        <p style="margin: 2px 0; font-size: 11px;">UAE / الإمارات العربية المتحدة</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="font-size: 12px;">
+        <p style="margin: 3px 0;"><strong>Order / رقم الطلب:</strong> #{{ order.tracking_number }}</p>
+        <p style="margin: 3px 0;"><strong>Date / التاريخ:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
+        <p style="margin: 3px 0;"><strong>Customer / العميل:</strong> {{ order.full_name }}</p>
+        <p style="margin: 3px 0;"><strong>Phone / الهاتف:</strong> {{ order.phone }}</p>
+        <p style="margin: 3px 0;"><strong>Emirate / الإمارة:</strong> {{ order.emirate }}</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <table>
+        <thead>
+            <tr style="border-bottom: 1px solid #000;">
+                <th>Item / المنتج</th>
+                <th>Qty / الكمية</th>
+                <th>Price / السعر</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{% if lang == 'en' %}{{ item.product.name_en|default:item.product.name_ar }}{% else %}{{ item.product.name_ar }}{% endif %}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }} AED</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <div style="font-size: 13px;">
+        <div style="display: flex; justify-content: space-between;">
+            <span>Subtotal / المجموع:</span>
+            <span>{{ order.total_products_price }} AED</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>Shipping / الشحن:</span>
+            <span>{{ order.shipping_fee }} AED</span>
+        </div>
+        <div class="divider" style="margin: 5px 0;"></div>
+        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 15px;">
+            <span>Total / الإجمالي:</span>
+            <span>{{ order.grand_total }} AED</span>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="text-center" style="font-size: 11px; margin-top: 10px;">
+        <p>Thank you for shopping with ZAD! / شكراً لتسوقكم معنا</p>
+        <p>Cash on Delivery (COD)</p>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">Print Receipt / طباعة الإيصال</button>
+
+</body>
+</html>

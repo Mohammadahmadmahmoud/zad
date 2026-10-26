@@ -1,0 +1,71 @@
+/* استيراد خط كايرو (Cairo Font) من Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+
+/* تطبيق خط كايرو على كامل المتجر وتنسيق الخلفية العامة */
+body {
+    font-family: 'Cairo', sans-serif !important;
+    background-color: #f9fbf9;
+    color: #333;
+}
+
+:root {
+    --primary-green: #3d7a46;
+    --dark-green: #274e2d;
+    --accent-glow: #00ffcc;
+}
+
+.navbar {
+    background-color: #f9fbf9;
+}
+
+.navbar-brand img {
+    height: 45px;
+}
+
+.btn-success {
+    background-color: var(--primary-green);
+    border-color: var(--primary-green);
+}
+
+.btn-success:hover {
+    background-color: var(--dark-green);
+    border-color: var(--dark-green);
+}
+
+/* السلايدر الفلاشي المضيء للمنتجات التي عليها خصم */
+.flash-slider-container {
+    background: linear-gradient(135deg, #1b3820, #3d7a46);
+    border-radius: 15px;
+    padding: 30px;
+    color: white;
+    box-shadow: 0 0 25px rgba(0, 255, 204, 0.4);
+    border: 2px solid var(--accent-glow);
+    animation: borderGlow 2s infinite alternate;
+}
+
+@keyframes borderGlow {
+    from { box-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
+    to { box-shadow: 0 0 25px rgba(0, 255, 204, 0.7); }
+}
+
+.flash-badge {
+    background-color: #ff4757;
+    color: white;
+    animation: flashBadge 1s infinite alternate;
+}
+
+@keyframes flashBadge {
+    from { opacity: 0.6; }
+    to { opacity: 1; transform: scale(1.05); }
+}
+
+.product-card {
+    border: none;
+    transition: transform 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+}

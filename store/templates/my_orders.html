@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if lang == 'ar' %}طلباتي الشخصية | زاد للمنتجات العشبية{% else %}My Orders | Zad Herbal{% endif %}
+{% endblock %}
+
+{% block content %}
+<style>
+    /* تصميم خطوات تتبع الطلب بشكل بصري جذاب */
+    .tracking-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin: 20px 0 10px;
+    }
+    .tracking-steps::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 10%;
+        right: 10%;
+        height: 4px;
+        background: #e9ecef;
+        transform: translateY(-50%);
+        z-index: 1;
+    }
+    .step-item {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        background: #fff;
+        padding: 0 8px;
+    }
+    .step-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        margin: 0 auto 5px;
+        transition: all 0.3s ease;
+    }
+    .step-item.active .step-circle {
+        background: #198754;
+        color: #fff;
+        box-shadow: 0 0 10px rgba(25, 135, 84, 0.4);
+    }
+    .step-item.completed .step-circle {
+        background: #198754;
+        color: #fff;
+    }
+    .step-text {
+        font-size: 12px;
+        color: #6c757d;
+        font-weight: 600;
+    }
+    .step-item.active .step-text, .step-item.completed .step-text {
+        color: #198754;
+    }
+</style>
+
+<div class="container my-5">
+    <!-- معلومات الحساب الشخصي السريعة -->
+    <div class="card shadow-sm border-0 rounded-4 p-4 bg-white mb-4 border-start border-success border-5">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="fw-bold text-success mb-1">
+                    <i class="fas fa-user-circle me-2"></i>مرحباً، {{ request.user.first_name|default:request.user.username }}
+                </h3>
+                <p class="text-muted mb-0 small">البريد الإلكتروني: {{ request.user.email }} | الهاتف: {{ request.user.profile.phone|default:"غير مسجل" }}</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="{% url 'home_view' %}" class="btn btn-outline-success rounded-pill px-4 shadow-sm fw-bold">
+                    <i class="fas fa-shopping-bag me-1"></i> متابعة التسوق
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="fw-bold text-dark mb-4"><i class="fas fa-box-open me-2 text-success"></i>سجل طلباتك وتتبع حالتها</h4>
+
+    {% if orders %}
+        <div class="row g-4">
+            {% for order in orders %}
+            <div class="col-12">
+                <div class="card shadow-sm border-0 rounded-4 p-4 bg-white">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-3 gap-2">
+                        <div>
+                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold mb-1">
+                                رقم الطلب: {{ order.tracking_number }}
+                            </span>
+                            <p class="text-muted small mb-0">تاريخ الطلب: {{ order.created_at|date:"Y-m-d | H:i" }}</p>
+                        </div>
+                        <div class="text-md-end">
+                            <span class="text-muted small d-block">الإجمالي الكلي:</span>
+                            <span class="text-danger fw-bold fs-5">{{ order.grand_total }} AED</span>
+                        </div>
+                    </div>
+
+                    <!-- تفاصيل المنتجات داخل الطلب -->
+                    <div class="mb-3">
+                        <h6 class="fw-semibold text-secondary small mb-2">المنتجات المطلوبة:</h6>
+                        <ul class="list-group list-group-flush bg-light rounded-3 p-2">
+                            {% for item in order.items.all %}
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-2 px-3 border-0">
+                                <span class="fw-medium text-dark">
+    <i class="fas fa-leaf text-success me-1 small"></i> 
+    {% if lang == 'ar' %}
+        {{ item.product.name_ar|default:"منتج" }}
+    {% else %}
+        {{ item.product.name_en|default:item.product.name_ar }}
+    {% endif %} 
+    <span class="badge bg-secondary rounded-pill ms-2">الكمية: {{ item.quantity }}</span>
+</span>
+                                <span class="text-muted small">{{ item.price }} AED للقطعة</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- عنوان التوصيل ومعلومات الشحن -->
+                    <div class="row g-2 bg-light p-3 rounded-3 small mb-4 text-muted">
+                        <div class="col-md-6">
+                            <i class="fas fa-map-marker-alt text-success me-1"></i> <strong>الإمارة:</strong> {{ order.emirate }}
+                        </div>
+                        <div class="col-md-6">
+                            <i class="fas fa-truck text-success me-1"></i> <strong>رسوم الشحن:</strong> {{ order.shipping_fee }} AED
+                        </div>
+                        <div class="col-12">
+                            <i class="fas fa-home text-success me-1"></i> <strong>العنوان التفصيلي:</strong> {{ order.address }}
+                        </div>
+                    </div>
+
+                    <!-- شريط تتبع حالة الطلب البصري -->
+                    <div class="mt-2 pt-2 border-top">
+                        <h6 class="fw-bold text-success mb-3 small"><i class="fas fa-shipping-fast me-1"></i> حالة الطلب الحالية: 
+                            <span class="badge bg-dark">
+                                {% if order.status == 'Pending' %}قيد المعالجة (Pending){% elif order.status == 'Shipped' %}تم الشحن (Shipped){% else %}تم التوصيل (Delivered){% endif %}
+                            </span>
+                        </h6>
+
+                        <div class="tracking-steps px-md-5">
+                            <!-- الخطوة 1: قيد المعالجة -->
+                            <div class="step-item {% if order.status == 'Pending' %}active{% elif order.status == 'Shipped' or order.status == 'Delivered' %}completed{% endif %}">
+                                <div class="step-circle"><i class="fas fa-clock"></i></div>
+                                <div class="step-text">قيد المعالجة</div>
+                            </div>
+                            <!-- الخطوة 2: تم الشحن -->
+                            <div class="step-item {% if order.status == 'Shipped' %}active{% elif order.status == 'Delivered' %}completed{% endif %}">
+                                <div class="step-circle"><i class="fas fa-truck"></i></div>
+                                <div class="step-text">تم الشحن</div>
+                            </div>
+                            <!-- الخطوة 3: تم التوصيل -->
+                            <div class="step-item {% if order.status == 'Delivered' %}active completed{% endif %}">
+                                <div class="step-circle"><i class="fas fa-check"></i></div>
+                                <div class="step-text">تم التوصيل</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- حالة عدم وجود طلبات سابقة -->
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm p-5">
+            <div class="mb-3">
+                <i class="fas fa-shopping-cart fa-3x text-muted opacity-50"></i>
+            </div>
+            <h5 class="fw-bold text-secondary">لا توجد طلبات سابقة حتى الآن</h5>
+            <p class="text-muted small mb-4">استكشف منتجاتنا الطبيعية والخلطات العشبية وابدأ طلبك الأول الآن!</p>
+            <a href="{% url 'home_view' %}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                تسوق الآن
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}حذف المنتج | لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="max-width: 500px;">
+    <div class="card shadow-sm p-4 rounded-4 text-center">
+        <h3 class="mb-3 text-danger fw-bold">تأكيد الحذف</h3>
+        <p class="text-muted">هل أنت متأكد من رغبتك في حذف المنتج <strong>"{{ product.name }}"</strong> نهائياً؟</p>
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger w-100 py-2 fw-bold mb-2">نعم، احذف المنتج</button>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary w-100 py-2">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if lang == 'en' %}All Products | Zad Herbal{% else %}جميع المنتجات | زاد للمنتجات العشبية{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    
+    <!-- عنوان الصفحة -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold text-success">
+            {% if lang == 'en' %}Our Herbal Products{% else %}منتجاتنا العشبية الطبيعية{% endif %}
+        </h2>
+        <p class="text-muted">
+            {% if lang == 'en' %}Explore our finest collection of natural herbs, oils and blends{% else %}تصفح تشكيلتنا المميزة من الأعشاب والزيوت والخلطات الطبيعية الأصلية{% endif %}
+        </p>
+    </div>
+
+    <!-- شريط البحث والفلتر المتقدم -->
+    <div class="card shadow-sm border-0 rounded-4 p-4 bg-white mb-5 border-top border-success border-4">
+        <form method="GET" action="{% url 'shop_products' %}" class="row g-3 align-items-center">
+            
+            <!-- الحفاظ على لغة الصفحة أثناء الفلتر -->
+            <input type="hidden" name="lang" value="{{ lang }}">
+
+            <!-- بحث بالاسم -->
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">
+                    {% if lang == 'en' %}Product Name{% else %}اسم المنتج{% endif %}
+                </label>
+                <input type="text" name="q" value="{{ request.GET.q }}" class="form-control rounded-pill px-3 shadow-sm" placeholder="{% if lang == 'en' %}Search products...{% else %}ابحث عن منتج...{% endif %}">
+            </div>
+
+    
+            <!-- التصنيف -->
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">
+                    {% if lang == 'en' %}Category{% else %}التصنيف{% endif %}
+                </label>
+                <select name="category" class="form-select rounded-pill px-7 shadow-sm">
+                    <option value="">{% if lang == 'en' %}All Categories{% else %}جميع التصنيفات{% endif %}</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>
+                            {% if lang == 'en' and cat.name_en %}
+                                {{ cat.name_en }}
+                            {% else %}
+                                {{ cat.name_ar }}
+                            {% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- الترتيب (الأحدث، السعر، الخصم) -->
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">
+                    {% if lang == 'en' %}Sort By{% else %}ترتيب حسب{% endif %}
+                </label>
+                <select name="sort" class="form-select rounded-pill px-px-7 shadow-sm">
+                    <option value="">{% if lang == 'en' %}Default{% else %}الافتراضي{% endif %}</option>
+                    <option value="latest" {% if request.GET.sort == 'latest' %}selected{% endif %}>{% if lang == 'en' %}Latest{% else %}الأحدث{% endif %}</option>
+                    <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>{% if lang == 'en' %}Price: Low to High{% else %}السعر: من الأقل للأعلى{% endif %}</option>
+                    <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>{% if lang == 'en' %}Price: High to Low{% else %}السعر: من الأعلى للأقل{% endif %}</option>
+                    <option value="discount" {% if request.GET.sort == 'discount' %}selected{% endif %}>{% if lang == 'en' %}Discounts Only{% else %}العروض والخصومات{% endif %}</option>
+                </select>
+            </div>
+
+            <!-- أزرار التنفيذ -->
+            <div class="col-md-3 d-flex align-items-end gap-2 mt-auto">
+                <button type="submit" class="btn btn-success rounded-pill shadow-sm w-100 fw-bold py-2">
+                    <i class="fas fa-filter me-1"></i> {% if lang == 'en' %}Apply Filter{% else %}تطبيق الفلتر{% endif %}
+                </button>
+                <a href="{% url 'shop_products' %}?lang={{ lang }}" class="btn btn-outline-secondary rounded-pill shadow-sm px-3 py-2" title="إعادة تعيين">
+                    <i class="fas fa-redo"></i>
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- شبكة عرض المنتجات -->
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm border-0 rounded-4 product-card">
+                <a href="{% url 'product_detail' product.pk %}">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" class="card-img-top rounded-top-4 object-fit-cover" style="height: 200px;" alt="Product">
+                    {% else %}
+                    <img src="{% static 'images/default.png' %}" class="card-img-top rounded-top-4 object-fit-cover" style="height: 200px;" alt="Product">
+                    {% endif %}
+                </a>
+
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold">
+                        <a href="{% url 'product_detail' product.pk %}" class="text-dark text-decoration-none">
+                            {% if lang == 'en' and product.name_en %}
+                                {{ product.name_en }}
+                            {% else %}
+                                {{ product.name_ar }}
+                            {% endif %}
+                        </a>
+                    </h5>
+
+                    <div class="mb-3">
+                        {% if product.discount_price %}
+                        <span class="text-danger fw-bold fs-5">{{ product.discount_price }} AED</span>
+                        <span class="text-muted text-decoration-line-through ms-2 small">{{ product.price }} AED</span>
+                        {% else %}
+                        <span class="text-success fw-bold fs-5">{{ product.price }} AED</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-auto">
+                        <form action="{% url 'add_to_cart' product.pk %}" method="POST" class="ajax-cart-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success w-100 fw-bold py-2 shadow-sm rounded-pill">
+                                <i class="fas fa-cart-plus me-1"></i> 
+                                {% if lang == 'en' %}Add to Cart{% else %}أضف إلى السلة{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted fs-4">
+                <i class="fas fa-box-open fa-2x mb-3 text-secondary"></i>
+                <p>{% if lang == 'en' %}No products found matching your criteria.{% else %}لا توجد منتجات تطابق خيارات البحث الحالية.{% endif %}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

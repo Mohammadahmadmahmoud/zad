@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}عنوان الصفحة الفرعية{% endblock %}
+{% block content %}
+    <div class="container my-5" style="max-width: 700px;">
+        <h2 class="mb-4 text-success fw-bold text-center">تتبع حالة طلبك</h2>
+        <div class="card shadow-sm p-4 mb-4">
+            <form method="GET" class="input-group">
+                <input type="text" name="tracking_number" class="form-control" placeholder="أدخل رقم التتبع (مثال: ZAD-XXXXXXXX)" value="{{ tracking_number|default:'' }}">
+                <button class="btn btn-success" type="submit">بحث</button>
+            </form>
+        </div>
+
+        {% if order %}
+        <div class="card shadow-sm p-4">
+            <h4>تفاصيل الطلب: <span class="text-success">{{ order.tracking_number }}</span></h4>
+            <hr>
+            <p><strong>اسم العميل:</strong> {{ order.full_name }}</p>
+            <p><strong>الإمارة:</strong> {{ order.emirate }}</p>
+            <p><strong>إجمالي المبلغ (مع الشحن):</strong> {{ order.grand_total }} AED</p>
+            <p><strong>طريقة الدفع:</strong> الدفع عند الاستلام (COD)</p>
+            <p><strong>حالة الشحنة الحالية:</strong> 
+                <span class="badge bg-warning text-dark fs-6">{{ order.get_status_display }}</span>
+            </p>
+        </div>
+        {% elif tracking_number %}
+        <div class="alert alert-danger text-center">عذراً، لم يتم العثور على أي طلب بهذا الرقم. تأكد من صحة رقم التتبع.</div>
+        {% endif %}
+    </div>
+{% endblock %}

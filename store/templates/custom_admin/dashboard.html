@@ -1,0 +1,379 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}لوحة التحكم | زاد للمنتجات العشبية{% endblock %}
+
+{% block content %}
+    <div dir="{% if lang == 'en' %}ltr{% else %}rtl{% endif %}">
+        <nav class="navbar navbar-dark bg-success shadow-sm px-4">
+            <span class="navbar-brand mb-0 h1">
+                {% if lang == 'en' %}ZAD Admin Dashboard (Standalone){% else %}لوحة إدارة متجر زاد (منفصلة){% endif %}
+            </span>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'home_view' %}" class="btn btn-outline-light btn-sm">
+                    {% if lang == 'en' %}View Store{% else %}عرض المتجر{% endif %}
+                </a>
+                <!-- زر فتح نافذة Modal لإضافة تصنيف جديد -->
+                <button type="button" class="btn btn-light text-success fw-bold btn-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                    <i class="fas fa-folder-plus me-1"></i> {% if lang == 'en' %}Add New Category{% else %}إضافة تصنيف جديد{% endif %}
+                </button>
+                <a href="{% url 'admin_add_product' %}" class="btn btn-warning text-dark fw-bold btn-sm">
+                    <i class="fas fa-plus-circle me-1"></i> {% if lang == 'en' %}Add New Product{% else %}إضافة منتج جديد{% endif %}
+                </a>
+            </div>
+        </nav>
+
+        <div class="container my-5">
+            
+            <!-- قسم الملخص المالي والأرباح -->
+            <div class="row mb-5">
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm rounded-4 bg-success text-white p-3">
+                        <h6 class="fw-light">{% if lang == 'en' %}Total Revenue{% else %}إجمالي الإيرادات{% endif %}</h6>
+                        <h3 class="fw-bold m-0">{{ total_revenue|floatformat:2 }} AED</h3>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm rounded-4 bg-danger text-white p-3">
+                        <h6 class="fw-light">{% if lang == 'en' %}Total Expenses{% else %}إجمالي المصروفات{% endif %}</h6>
+                        <h3 class="fw-bold m-0">{{ total_expenses|floatformat:2 }} AED</h3>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm rounded-4 bg-dark text-white p-3">
+                        <h6 class="fw-light">{% if lang == 'en' %}Net Profit{% else %}صافي الربح{% endif %}</h6>
+                        <h3 class="fw-bold m-0">{{ net_profit|floatformat:2 }} AED</h3>
+                    </div>
+                </div>
+            </div>
+<a href="{% url 'admin_print_financial_report' %}" target="_blank" class="btn btn-outline-dark btn-sm fw-bold shadow-sm">
+    <i class="fas fa-print me-1"></i>{% if lang == 'en' %} Print Fnancial Report   {% else %}  طباعة التقرير المالي {% endif %} 
+</a>
+            <!-- قسم إدارة المنتجات وتتبع المخزون -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="fw-bold text-success m-0">
+                    {% if lang == 'en' %}Products & Inventory Tracking{% else %}إدارة المنتجات وتتبع المخزون{% endif %}
+                </h2>
+                <!-- شريط بحث فوري للمنتجات -->
+                <div class="w-25">
+                    <input type="text" id="productSearch" class="form-control form-control-sm rounded-pill px-3" placeholder="{% if lang == 'en' %}Search product...{% else %}ابحث عن منتج...{% endif %}">
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-5 border-0 rounded-4">
+                <div class="card-body">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-hover align-middle" id="productsTable">
+                            <thead class="table-light sticky-top" style="z-index: 1;">
+                                <tr>
+                                    <th>{% if lang == 'en' %}Image{% else %}الصورة{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Product Name{% else %}اسم المنتج{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Original Price{% else %}السعر الأصلي{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Discount Price{% else %}سعر الخصم{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Stock / Quantity{% else %}الكمية / المخزون{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Featured (Slider){% else %}مميز (سلايدر){% endif %}</th>
+                                    <th>{% if lang == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in products %}
+                                <tr>
+                                    <td>
+                                        {% if p.image %}
+                                            <img src="{{ p.image.url }}" width="45" height="45" class="rounded object-fit-cover shadow-sm">
+                                        {% else %}
+                                            <span class="text-muted small">{% if lang == 'en' %}No image{% else %}لا توجد صورة{% endif %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-semibold product-name">
+    {% if lang == 'en' %}
+        {{ p.name_en|default:p.name_ar }}
+    {% else %}
+        {{ p.name_ar|default:p.name_en }}
+    {% endif %}
+</td>
+                                    <td>{{ p.price }} AED</td>
+                                    <td>
+                                        {% if p.discount_price %}
+                                            <span class="text-danger fw-bold">{{ p.discount_price }} AED</span>
+                                        {% else %}
+                                            <span class="text-muted">{% if lang == 'en' %}None{% else %}لا يوجد{% endif %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <!-- عرض المخزون أو الكمية المتاحة -->
+                                        <span class="badge bg-info text-dark fw-bold">
+                                            {{ p.stock|default:p.stock|default:"متوفر" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if p.is_featured %}
+                                            <span class="badge bg-success">{% if lang == 'en' %}Yes{% else %}نعم{% endif %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% if lang == 'en' %}No{% else %}لا{% endif %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'admin_edit_product' p.pk %}" class="btn btn-sm btn-warning text-dark fw-bold me-1">
+                                            <i class="fas fa-edit"></i> {% if lang == 'en' %} {% else %}{% endif %}
+                                        </a>
+                                        <a href="{% url 'admin_delete_product' p.pk %}" class="btn btn-sm btn-danger fw-bold delete-product-btn">
+                                            <i class="fas fa-trash"></i> {% if lang == 'en' %}{% else %}{% endif %}
+                                        </a>
+                                    </td>
+                         </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        {% if lang == 'en' %}No products added yet.{% else %}لا توجد منتجات مضافة حتى الآن.{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- قسم إضافة مصروف / فاتورة جديد -->
+<div class="card shadow-sm border-0 rounded-4 mb-4 bg-light">
+    <div class="card-body">
+        <h5 class="fw-bold text-success mb-3">
+            <i class="fas fa-file-invoice-dollar me-2"></i>
+            {% if lang == 'en' %}Add New Expense / Invoice{% else %}تسجيل مصروف أو فاتورة جديدة{% endif %}
+        </h5>
+        <!-- فورم الإدخال (تأكد أن الـ action يوجه لدالة حفظ المصروفات في views.py لديك) -->
+        <form method="POST" action="" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-5">
+                <label class="form-label small fw-bold">{% if lang == 'en' %}Title / Description{% else %}البيان / عنوان المصروف{% endif %}</label>
+                <input type="text" name="expense_title" class="form-control form-control-sm" required placeholder="مثلاً: شراء مواد خام، فاتورة كهرباء...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">{% if lang == 'en' %}Amount (AED){% else %}المبلغ (درهم){% endif %}</label>
+                <input type="number" step="0.01" name="expense_amount" class="form-control form-control-sm" required placeholder="0.00">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-success btn-sm fw-bold w-100">
+                    <i class="fas fa-plus me-1"></i> {% if lang == 'en' %}Save Expense{% else %}حفظ وإضافة المصروف{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- أزرار طباعة التقارير والفواتير العامة -->
+
+            <!-- قسم إدارة المصروفات والفواتير -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="fw-bold text-success m-0">
+                    {% if lang == 'en' %}Expenses Management{% else %}إدارة المصروفات والفواتير{% endif %}
+                </h2>
+            </div>
+
+            <div class="card shadow-sm mb-5 border-0 rounded-4">
+                <div class="card-body">
+                    <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light sticky-top" style="z-index: 1;">
+                                <tr>
+                                    <th>{% if lang == 'en' %}Expense Title / Description{% else %}عنوان المصروف / البيان{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Amount{% else %}المبلغ{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Date{% else %}التاريخ{% endif %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exp in expenses %}
+                                <tr>
+                                    <td class="fw-semibold">{{ exp.title_ar }}</td>
+                                    <td class="text-danger fw-bold">{{ exp.amount }} AED</td>
+                                    <td>{{ exp.date }}</td>
+                                    
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">
+                                        {% if lang == 'en' %}No expenses recorded yet.{% else %}لا توجد مصروفات أو فواتير مسجلة حتى الآن.{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- قسم الطلبات الواردة -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="fw-bold text-success m-0">
+                    {% if lang == 'en' %}Incoming Orders (Cash on Delivery){% else %}الطلبات الواردة (الدفع عند الاستلام){% endif %}
+                </h2>
+                <div class="w-25">
+                    <input type="text" id="orderSearch" class="form-control form-control-sm rounded-pill px-3" placeholder="{% if lang == 'en' %}Search tracking or customer...{% else %}ابحث برقم التتبع أو العميل...{% endif %}">
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-hover align-middle" id="ordersTable">
+                            <thead class="table-light sticky-top" style="z-index: 1;">
+                                <tr>
+                                    <th>{% if lang == 'en' %}Tracking No.{% else %}رقم التتبع{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Customer{% else %}العميل{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Phone{% else %}الهاتف{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Emirate{% else %}الإمارة{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Grand Total (inc. Shipping){% else %}الإجمالي الكلي (مع الشحن){% endif %}</th>
+                                    <th>{% if lang == 'en' %}Status{% else %}الحالة{% endif %}</th>
+                                    <th>{% if lang == 'en' %}Bill{% else %}الفاتورة{% endif %}</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for o in orders %}
+                                <tr class="order-row">
+                                    <td><strong class="text-success tracking-num">{{ o.tracking_number }}</strong></td>
+                                    <td class="customer-info">{{ o.full_name }}<br><small class="text-muted">{{ o.email }}</small></td>
+                                    <td>{{ o.phone }}</td>
+                                    <td>{{ o.emirate }}</td>
+                                    <td class="fw-bold">{{ o.grand_total }} AED</td>
+                                    <td>
+    <form method="POST" action="{% url 'admin_update_order_status' o.pk %}" class="d-flex align-items-center gap-1">
+        {% csrf_token %}
+        <select name="status" class="form-select form-select-sm" style="width: 145px;">
+            <option value="Pending" {% if o.status == 'Pending' %}selected{% endif %}>
+                {% if lang == 'en' %}Pending{% else %}قيد المعالجة{% endif %}
+            </option>
+            <option value="Shipped" {% if o.status == 'Shipped' %}selected{% endif %}>
+                {% if lang == 'en' %}Shipped / On the way{% else %}تم الشحن / في الطريق{% endif %}
+            </option>
+            <option value="Delivered" {% if o.status == 'Delivered' %}selected{% endif %}>
+                {% if lang == 'en' %}Delivered{% else %}تم التوصيل{% endif %}
+            </option>
+            <option value="Not Delivered" {% if o.status == 'Not Delivered' %}selected{% endif %}>
+                {% if lang == 'en' %}Not Delivered{% else %}تم الارجاع{% endif %}
+            </option>
+            
+        </select>
+        <button type="submit" class="btn btn-sm btn-success py-1 px-2 fw-bold">
+            <i class="fas fa-check"></i>
+        </button>
+    </form>
+</td>
+                                <td>
+    {% if o.tracking_number %}
+        <a href="{% url 'admin_print_invoice' o.tracking_number %}" target="_blank" class="btn btn-sm btn-outline-success fw-bold py-1 px-2">
+            <i class="fas fa-receipt"></i> طباعة الفاتورة
+        </a>
+    {% else %}
+        <span class="text-muted small">رقم التتبع غير متوفر</span>
+    {% endif %}
+</td>
+       
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        {% if lang == 'en' %}No orders yet.{% else %}لا توجد طلبات حتى الآن.{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- نافذة الـ Modal لإضافة تصنيف جديد -->
+        <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title fw-bold" id="addCategoryModalLabel">
+                            {% if lang == 'en' %}Add New Store Category{% else %}إضافة تصنيف جديد للمتجر{% endif %}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{% url 'admin_add_category' %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            {{ category_form.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                                {% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}
+                            </button>
+                            <button type="submit" class="btn btn-success btn-sm fw-bold px-4">
+                                {% if lang == 'en' %}Save Category{% else %}حفظ التصنيف{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- كود الجافاسكريبت التفاعلي -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const productSearch = document.getElementById('productSearch');
+        if (productSearch) {
+            productSearch.addEventListener('keyup', function() {
+                let filter = this.value.toLowerCase();
+                let rows = document.querySelectorAll('#productsTable tbody tr');
+                rows.forEach(row => {
+                    let nameCell = row.querySelector('.product-name');
+                    if (nameCell) {
+                        let text = nameCell.textContent || nameCell.innerText;
+                        row.style.display = text.toLowerCase().indexOf(filter) > -1 ? "" : "none";
+                    }
+                });
+            });
+        }
+
+        const orderSearch = document.getElementById('orderSearch');
+        if (orderSearch) {
+            orderSearch.addEventListener('keyup', function() {
+                let filter = this.value.toLowerCase();
+                let rows = document.querySelectorAll('#ordersTable tbody tr.order-row');
+                rows.forEach(row => {
+                    let tracking = row.querySelector('.tracking-num').textContent.toLowerCase();
+                    let customer = row.querySelector('.customer-info').textContent.toLowerCase();
+                    if (tracking.includes(filter) || customer.includes(filter)) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+            });
+        }
+
+        const deleteButtons = document.querySelectorAll('.delete-product-btn');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                let deleteUrl = this.href;
+
+                let alertTitle = "{% if lang == 'en' %}Are you sure you want to delete?{% else %}هل أنت متأكد من الحذف؟{% endif %}";
+                let alertText = "{% if lang == 'en' %}You won't be able to revert this!{% else %}لن يمكنك التراجع عن هذه الخطوة بعد إتمامها!{% endif %}";
+                let confirmText = "{% if lang == 'en' %}Yes, delete it{% else %}نعم، قم بالحذف{% endif %}";
+                let cancelText = "{% if lang == 'en' %}Cancel{% else %}إلغاء{% endif %}";
+
+                Swal.fire({
+                    title: alertTitle,
+                    text: alertText,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: confirmText,
+                    cancelButtonText: cancelText
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = deleteUrl;
+                    }
+                });
+            });
+        });
+    });
+    </script>
+{% endblock %}

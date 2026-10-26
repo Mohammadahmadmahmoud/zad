@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+    {% if lang == 'ar' %}{{ product.name_ar }} | زاد للمنتجات العشبية{% else %}{{ product.name_en }} | Zad Herbal{% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container my-5">
+        <div class="row bg-white p-4 rounded-4 shadow-sm align-items-center">
+            
+            <!-- صورة المنتج -->
+            <div class="col-md-5 text-center mb-4 mb-md-0">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="img-fluid rounded-4 shadow-sm object-fit-contain" style="max-height: 380px;" alt="Product">
+                {% else %}
+                    <img src="{% static 'images/default.png' %}" class="img-fluid rounded-4 shadow-sm object-fit-contain" style="max-height: 380px;" alt="Default">
+                {% endif %}
+            </div>
+
+            <!-- تفاصيل المنتج ومعلومات الوزن -->
+            <div class="col-md-7">
+                <h1 class="fw-bold text-success mb-3">
+                    {% if lang == 'ar' %}{{ product.name_ar }}{% else %}{{ product.name_en|default:product.name_ar }}{% endif %}
+                </h1>
+                
+                <p class="text-muted mt-2" style="line-height: 1.8;">
+                    {% if lang == 'ar' %}{{ product.description_ar }}{% else %}{{ product.description_en|default:product.description_ar }}{% endif %}
+                </p>
+
+                <!-- نموذج الإضافة للسلة مع خيار الوزن إذا كان المنتج يُباع بالوزن -->
+                <form action="{% url 'add_to_cart' product.pk %}" method="POST" id="add-to-cart-form">
+                    {% csrf_token %}
+
+                    <!-- عرض السعر الأساسي أو السعر المتغير حسب الوزن -->
+                    <div class="my-3 p-3 bg-light rounded-3 border border-success-subtle">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="text-muted small fw-bold">{% if lang == 'ar' %}السعر الأساسي للكيلو/الوحدة:{% else %}Base Price:{% endif %}</span>
+                            <div>
+                                {% if product.discount_price %}
+                                    <span class="text-muted text-decoration-line-through fs-6" id="base-price" data-price="{{ product.discount_price }}">{{ product.discount_price }} AED</span>
+                                    <span class="text-danger fw-bold fs-3 ms-2" id="final-price-display">{{ product.discount_price }} AED</span>
+                                {% else %}
+                                    <span class="fw-bold fs-3 text-success" id="base-price" data-price="{{ product.price }}">{{ product.price }} AED</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- إذا كان المنتج يُباع بالوزن، نظهر قائمة اختيار الأوزان -->
+                    {% if product.is_sold_by_weight %}
+                    <div class="mb-4">
+                        <label for="weight-select" class="form-label fw-bold text-dark">
+                            <i class="fas fa-weight-scale text-success me-1"></i> 
+                            {% if lang == 'ar' %}اختر الوزن المطلوب:{% else %}Select Weight Option:{% endif %}
+                        </label>
+                        <select name="weight" id="weight-select" class="form-select rounded-pill shadow-sm border-success py-2">
+                            <option value="0.050" data-multiplier="0.05">{% if lang == 'ar' %}50 جرام (0.05 كجم){% else %}50g (0.05 kg){% endif %}</option>
+                            <option value="0.100" data-multiplier="0.1">{% if lang == 'ar' %}100 جرام (0.1 كجم){% else %}100g (0.1 kg){% endif %}</option>
+                            <option value="0.250" data-multiplier="0.25">{% if lang == 'ar' %}رابع كيلو - 250 جرام{% else %}250g (Quarter kg){% endif %}</option>
+                            <option value="0.500" data-multiplier="0.5" selected>{% if lang == 'ar' %}نصف كيلو - 500 جرام{% else %}500g (Half kg){% endif %}</option>
+                            <option value="1.000" data-multiplier="1.0">{% if lang == 'ar' %}كيلو كامل - 1000 جرام{% else %}1000g (1 kg){% endif %}</option>
+                            <option value="2.000" data-multiplier="2.0">{% if lang == 'ar' %}2 كيلو (2000 جرام){% else %}2 kg{% endif %}</option>
+                        </select>
+                        <div class="form-text text-muted mt-1">
+                            <small>{% if lang == 'ar' %}سيتم خصم الوزن المختار بدقة من المخزون عند إتمام الطلب.{% else %}The selected weight will be accurately deducted from inventory upon checkout.{% endif %}</small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- للمنتجات العادية (بالقطع) -->
+                    <input type="hidden" name="quantity" value="1">
+                    {% endif %}
+
+                    <!-- زر الإضافة للسلة -->
+                    <div class="d-grid gap-2 d-md-flex mt-4">
+                        <button type="submit" class="btn btn-success btn-lg px-5 rounded-pill shadow-sm fw-bold flex-grow-1">
+                            <i class="fas fa-cart-plus me-2"></i> 
+                            {% if lang == 'ar' %}أضف إلى السلة{% else %}Add to Cart{% endif %}
+                        </button>
+                    </div>
+                </form>
+
+                <!-- زر العودة -->
+                <div class="mt-4">
+                    <a href="{% url 'home_view' %}" class="text-muted text-decoration-none fw-semibold">
+                        <i class="fas fa-arrow-right me-1"></i> {% if lang == 'ar' %}العودة للرئيسية{% else %}Back to Home{% endif %}
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- سكود جافاسكريبت لحساب السعر ديناميكياً بناءً على الوزن المختار -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const weightSelect = document.getElementById("weight-select");
+            const priceElement = document.getElementById("base-price");
+            const finalPriceDisplay = document.getElementById("final-price-display");
+
+            if (weightSelect && priceElement) {
+                const basePrice = parseFloat(priceElement.getAttribute("data-price"));
+
+                function updatePrice() {
+                    const selectedOption = weightSelect.options[weightSelect.selectedIndex];
+                    const multiplier = parseFloat(selectedOption.getAttribute("data-multiplier"));
+                    const calculatedPrice = (basePrice * multiplier).toFixed(2);
+                    
+                    if (finalPriceDisplay) {
+                        finalPriceDisplay.textContent = calculatedPrice + " AED";
+                    } else {
+                        priceElement.textContent = calculatedPrice + " AED";
+                    }
+                }
+
+                weightSelect.addEventListener("change", updatePrice);
+                updatePrice(); // التشغيل المبدئي عند تحميل الصفحة
+            }
+        });
+    </script>
+{% endblock %}

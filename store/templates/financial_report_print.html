@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>التقرير المالي - زاد</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; color: #000; }
+        .header { text-align: center; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; font-size: 14px; }
+        th { background-color: #f2f2f2; }
+        .summary { margin-top: 20px; font-size: 16px; font-weight: bold; }
+    </style>
+</head>
+<body onload="window.print()">
+    <div class="header">
+        <h2>زاد للمنتجات العشبية - التقرير المالي الشامل</h2>
+        <p>تاريخ التقرير: {% now "Y-m-d H:i" %}</p>
+        <hr>
+    </div>
+    <div class="summary">
+        <p>إجمالي الإيرادات: {{ total_revenue|floatformat:2 }} AED</p>
+        <p>إجمالي المصروفات: {{ total_expenses|floatformat:2 }} AED</p>
+        <p>صافي الربح الفعلي: {{ net_profit|floatformat:2 }} AED</p>
+    </div>
+    <h3>تفاصيل المصروفات المسجلة:</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>البيان</th>
+                <th>التصنيف</th>
+                <th>المبلغ</th>
+                <th>التاريخ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for exp in expenses %}
+            <tr>
+                <td>{{ exp.title_ar }}</td>
+                <td>{{ exp.category_ar }}</td>
+                <td>{{ exp.amount }} AED</td>
+                <td>{{ exp.date|date:"Y-m-d" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

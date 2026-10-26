@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if lang == 'ar' %}الرئيسية | زاد للمنتجات العشبية{% else %}Home | Zad Herbal{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+    /* تأثير الفلاش ونبضات الحيوية للشارة */
+    @keyframes temuFlashPulse {
+        0% { transform: scale(1); filter: brightness(1); }
+        50% { transform: scale(1.06); filter: brightness(1.15); }
+        100% { transform: scale(1); filter: brightness(1); }
+    }
+
+    .temu-flash-badge {
+        animation: temuFlashPulse 1.2s infinite ease-in-out;
+        background: linear-gradient(45deg, #ff4757, #ff6b81);
+        color: #fff;
+    }
+
+    /* حاوية السلايدر للعروض السريعة */
+    .flash-slider-container {
+        background: linear-gradient(135deg, #f1f8f5 0%, #e2eee6 100%);
+        border-radius: 1rem;
+        padding: 1.25rem 1.5rem;
+        border: 1px solid #198754;
+    }
+
+    /* كارد المنتج مع تفاعلية حيوية وحركة عند التمرير */
+    .temu-flash-card {
+        background: #ffffff;
+        border-radius: 0.75rem;
+        border: 1px solid #c3e6cb;
+        transition: all 0.25s ease-in-out;
+    }
+
+    .temu-flash-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(25, 135, 84, 0.18);
+        border-color: #198754;
+    }
+
+    /* إطار الصورة للمنتجات */
+    .flash-img-wrapper {
+ 
+        border-top-left-radius: 0.75rem;
+        border-top-right-radius: 0.75rem;
+        overflow: hidden;
+        height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+    }
+    .flash-img-wrapper img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+    .temu-flash-card:hover .flash-img-wrapper img {
+        transform: scale(1.08);
+    }
+    .video-hero-container {
+        min-height: 620px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+    }
+    .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    /* حاوية سلايدر التصنيفات لتمتد بعرض الهيدر بالكامل */
+    .categories-slider-wrapper {
+        width: 100%;
+        max-width: 100%;
+ 
+        padding: 1.2rem 2rem;
+ 
+        position: relative;
+    }
+
+    /* تنسيق كارد التصنيف وتوحيد المقاسات */
+    .category-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+ 
+        border: 1px solid rgba(25, 135, 84, 0.2) !important;
+        height: 100%;
+        will-change: transform;
+    }
+    .category-card:hover {
+ 
+        box-shadow: 0 12px 24px rgba(25, 135, 84, 0.25) !important;
+    }
+    
+    /* إطار صورة التصنيف بحجم كبير وشكل مربع بزوايا دائرية متناسقة */
+    .category-img-wrapper {
+        width: 120px;
+        height: 120px;
+ 
+        border-radius: 1rem; /* شكل مربع بزوايا ناعمة */
+        overflow: hidden;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        border: 1px solid rgba(25, 135, 84, 0.15);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    }
+    
+    .category-img-wrapper img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain; /* عرض الصورة بالكامل دون قص */
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .category-card:hover .category-img-wrapper img {
+        transform: scale(1.12);
+    }
+</style>
+
+<!-- الهيدر وصفحة الهبوط مع الفيديو وشريط التصنيفات (بعرض الهيدر بالكامل) بداخله -->
+<header class="container my-4">
+    <div class="video-hero-container position-relative rounded-4 overflow-hidden shadow-sm p-4 text-center my-3">
+        <!-- عنصر الفيديو الخلفي -->
+        <video autoplay muted loop playsinline class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover" style="z-index: 1;">
+            <source src="{% static 'videos/hero.mp4' %}" type="video/mp4">
+            متصفحك لا يدعم عرض الفيديو.
+        </video>
+
+        <!-- طبقة تعتيم شفافة فوق الفيديو لضمان وضوح النصوص -->
+        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0, 0, 0, 0.45); z-index: 2;"></div>
+
+        <!-- المحتوى النصي فوق الفيديو -->
+        <div class="position-relative py-3 mb-2" style="z-index: 3;">
+            <h1 class="display-5 fw-bold text-white mb-2 text-shadow">
+                {% if lang == 'ar' %}طبيعة نقية، لصحة مستدامة{% else %}Pure Nature for Sustainable Health{% endif %}
+            </h1>
+            <p class="text-light large fw-semibold mb-0">
+                {% if lang == 'ar' %}أجود المنتجات العشبية والزيوت والخلطات الطبيعية في دولة الإمارات العربية المتحدة{% else %}Finest herbal products, oils, and natural blends in the UAE (Cash on Delivery){% endif %}
+            </p>
+        </div>
+
+        <!-- سلايدر التصنيفات ممتد بعرض الهيدر بالكامل (صور مربعة وكبيرة) -->
+        <div class="position-relative w-100 px-md-4 d-flex justify-content-center" style="z-index: 3;">
+            <div class="categories-slider-wrapper shadow-lg">
+                <div id="categoriesCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4500">
+                    <div class="carousel-inner">
+                        {% for cat in categories %}
+                            {% if forloop.counter0|divisibleby:4 %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <div class="row g-3 justify-content-center">
+                            {% endif %}
+
+                                    <div class="col-6 col-md-3">
+                                        <a href="{% url 'shop_products' %}?category={{ cat.id }}&lang={{ lang }}" class="text-decoration-none">
+                                            <div class="card category-card shadow-sm border-0 rounded-4 text-center p-3 js-interactive-card">
+                                                <div class="category-img-wrapper mb-3 shadow-sm">
+                                                    {% if cat.image %}
+                                                        <img src="{{ cat.image.url }}" alt="{% if lang == 'en' and cat.name_en %}{{ cat.name_en }}{% else %}{{ cat.name_ar }}{% endif %}">
+                                                    {% else %}
+                                                        <img src="{% static 'images/default.png' %}" alt="Category">
+                                                    {% endif %}
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <h6 class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.95rem;">
+                                                        {% if lang == 'en' and cat.name_en %}
+                                                            {{ cat.name_en }}
+                                                        {% else %}
+                                                            {{ cat.name_ar }}
+                                                        {% endif %}
+                                                    </h6>
+                                                    <span class="text-success fw-semibold" style="font-size: 0.75rem;">
+                                                        {% if lang == 'en' %}Explore <i class="fas fa-arrow-right ms-1">​</i>{% else %}تصفح <i class="fas fa-arrow-left me-1">​</i>{% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                            {% if forloop.counter|divisibleby:4 or forloop.last %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% empty %}
+                        <div class="carousel-item active text-center py-2">
+                            <p class="text-muted small m-0">{% if lang == 'en' %}No categories available yet.{% else %}لا توجد تصنيفات مضافة حالياً.{% endif %}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- أزرار التنقل يمين ويسار للسلايدر -->
+                    {% if categories|length > 4 %}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#categoriesCarousel" data-bs-slide="prev" style="width: 4%;">
+                        <span class="carousel-control-prev-icon bg-success rounded-circle p-2 shadow-sm" aria-hidden="true" style="background-size: 50%;"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#categoriesCarousel" data-bs-slide="next" style="width: 4%;">
+                        <span class="carousel-control-next-icon bg-success rounded-circle p-2 shadow-sm" aria-hidden="true" style="background-size: 50%;"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- السلايدر الفلاشي الحيوي (العروض السريعة) -->
+{% if featured_products %}
+<div class="container my-4">
+    <div class="flash-slider-container shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge fs-6 px-3 py-2 rounded-pill temu-flash-badge shadow-sm">
+                    ⚡ {% if lang == 'ar' %}🔥 عروض سريعة{% else %}Flash Deals{% endif %}
+                </span>
+            </div>
+            <!-- أزرار التنقل للسلايدر -->
+            <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-success rounded-circle p-2 shadow-sm" type="button" data-bs-target="#flashMultiCarousel" data-bs-slide="prev">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button class="btn btn-sm btn-success rounded-circle p-2 shadow-sm" type="button" data-bs-target="#flashMultiCarousel" data-bs-slide="next">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="flashMultiCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for product in featured_products %}
+                    {% if forloop.counter0|divisibleby:3 %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <div class="row g-2">
+                    {% endif %}
+
+                            <div class="col-md-4">
+                                <div class="card temu-flash-card h-100 p-2 text-dark">
+                                    <div class="flash-img-wrapper">
+                                        {% if product.image %}
+                                            <img src="{{ product.image.url }}" alt="{{ product.name_ar }}">
+                                        {% else %}
+                                            <img src="{% static 'images/default.png' %}" alt="Default">
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-body d-flex flex-column text-center p-2">
+                                        <h6 class="fw-bold text-dark text-truncate small mb-1">{% if lang == 'ar' %}{{ product.name_ar }}{% else %}{{ product.name_en|default:product.name_ar }}{% endif %}</h6>
+                                        <div class="mb-2">
+                                            <del class="text-muted small" style="font-size: 0.8rem;">{{ product.price }} AED</del> 
+                                            <span class="text-danger fw-bold ms-1" style="font-size: 1rem;">{{ product.discount_price }} AED</span>
+                                        </div>
+                                        <a href="{% url 'product_detail' product.pk %}" class="mt-auto btn btn-sm btn-success fw-bold rounded-pill py-1 shadow-sm" style="font-size: 0.85rem;">
+                                            {% if lang == 'ar' %}اطلب الآن{% else %}Shop Now{% endif %}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                    {% if forloop.counter|divisibleby:3 or forloop.last %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- كود جافاسكريبت تفاعلي متقدم لحركة الكاردات مع الماوس -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const interactiveCards = document.querySelectorAll('.js-interactive-card');
+
+        interactiveCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left; // موقع الماوس بالنسبة للكارد أفقياً
+                const y = e.clientY - rect.top;  // موقع الماوس بالنسبة للكارد عمودياً
+
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                // حساب زاوية الميلان بناءً على حركة الماوس (تأثير ثلاثي الأبعاد خفيف 3D Tilt)
+                const rotateX = -((y - centerY) / centerY) * 6; // أقصى ميل 6 درجات
+                const rotateY = ((x - centerX) / centerX) * 6;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                // إعادة الكارد لوضعه الطبيعي عند خروج الماوس مع انتقال سلس
+                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+            });
+        });
+    });
+</script>
+
+{% endblock %}

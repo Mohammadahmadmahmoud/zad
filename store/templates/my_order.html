@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if lang == 'en' %}My Previous Orders{% else %}طلباتي السابقة{% endif %} | Zad Herbal{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="max-width: 900px;" dir="{% if lang == 'en' %}ltr{% else %}rtl{% endif %}">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="fw-bold text-success m-0">
+            <i class="fas fa-box-open me-2"></i> {% if lang == 'en' %}My Order History{% else %}سجل طلباتي السابقة{% endif %}
+        </h2>
+        <span class="badge bg-primary px-3 py-2 rounded-pill fs-6 shadow-sm">
+            {{ orders|length }} {% if lang == 'en' %}Orders Found{% else %}طلبات مسجلة{% endif %}
+        </span>
+    </div>
+
+    {% if orders %}
+        <div class="list-group gap-4">
+            {% for order in orders %}
+            <div class="card shadow-sm border-0 rounded-4 p-4 order-card transition-all" style="background: #fff; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                
+                <!-- رأس الطلب: رقم الطلب والتاريخ -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-3 gap-2">
+                    <div>
+                        <span class="text-muted small d-block">{% if lang == 'en' %}Order Number{% else %}رقم الطلب{% endif %}</span>
+                        <h5 class="fw-bold mb-0 text-success">#{{ order.tracking_number }}</h5>
+                        <small class="text-muted"><i class="far fa-clock me-1"></i> {{ order.created_at|date:"Y-m-d H:i" }}</small>
+                    </div>
+                    <div>
+                        <span class="badge bg-warning text-dark px-3 py-2 fs-6 shadow-sm">
+                            <i class="fas fa-spinner fa-spin me-1"></i> {% if lang == 'en' %}Processing{% else %}قيد المعالجة{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- قائمة المنتجات داخل الطلب -->
+                <div class="mb-3">
+                    <h6 class="text-secondary fw-bold mb-3 small text-uppercase">
+                        <i class="fas fa-shopping-bag me-1"></i> {% if lang == 'en' %}Ordered Products{% else %}المنتجات المطلوبة{% endif %}
+                    </h6>
+<div class="d-flex flex-column gap-2">
+    {% for item in order.items.all %}
+    <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border-start border-success border-4">
+        <span class="fw-semibold text-dark">
+            {{ item.product.name_en|default:item.product.name_ar|default:item.product.name }}
+        </span>
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-secondary rounded-pill px-3 py-1">
+                {% if lang == 'en' %}Qty{% else %}الكمية{% endif %}: {{ item.quantity }}
+            </span>
+            <span class="text-success fw-bold">
+                {{ item.total_price }} AED
+            </span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+                </div>
+
+                <!-- تفاصيل الطلب (الإجمالي، الدفع، العنوان) -->
+                <div class="row g-2 bg-white p-3 rounded-3 border mb-3 text-secondary small">
+                    <div class="col-md-4">
+                        <i class="fas fa-money-bill-wave text-success me-1"></i> <strong>{% if lang == 'en' %}Total{% else %}الإجمالي الكلي{% endif %}:</strong> 
+                        <span class="text-dark fw-bold">{{ order.grand_total }} AED</span>
+                    </div>
+                    <div class="col-md-4">
+                        <i class="fas fa-credit-card text-success me-1"></i> <strong>{% if lang == 'en' %}Payment{% else %}طريقة الدفع{% endif %}:</strong> 
+                        <span class="text-dark">{{ order.payment_method }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <i class="fas fa-map-marker-alt text-success me-1"></i> <strong>{% if lang == 'en' %}Address{% else %}العنوان{% endif %}:</strong> 
+                        <span class="text-dark">{{ order.emirate }} - {{ order.address }}</span>
+                    </div>
+                </div>
+
+                <!-- شريط تتبع الطلب السفلي والتفاعل -->
+                <div class="bg-light p-3 rounded-3 d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+                    <div class="d-flex align-items-center text-dark">
+                        <i class="fas fa-shipping-fast text-success fs-5 me-2 animate-bounce"></i>
+                        <span>{% if lang == 'en' %}Shipping Status{% else %}حالة الشحن{% endif %}: <strong class="text-success">{% if lang == 'en' %}On the way to you{% else %}في الطريق إليك{% endif %}</strong></span>
+                    </div>
+                    <a href="{% url 'track_order_view' %}?tracking_number={{ order.tracking_number }}" class="btn btn-sm btn-outline-success fw-bold px-3 py-2 rounded-pill transition-hover">
+                        <i class="fas fa-search-location me-1"></i> {% if lang == 'en' %}Track Shipment Details{% else %}تتبع الشحنة بالتفصيل{% endif %}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- حالة عدم وجود طلبات -->
+        <div class="text-center py-5 card shadow-sm border-0 rounded-4 p-5">
+            <div class="mb-3">
+                <i class="fas fa-box-open text-muted display-4 opacity-50"></i>
+            </div>
+            <h4 class="text-muted mb-3">{% if lang == 'en' %}You have no previous orders yet{% else %}ليس لديك أي طلبات سابقة حتى الآن{% endif %}</h4>
+            <div>
+                <a href="{% url 'home_view' %}" class="btn btn-success px-5 py-2 fw-bold rounded-pill shadow-sm">
+                    <i class="fas fa-shopping-cart me-2"></i> {% if lang == 'en' %}Start Shopping Now{% else %}ابدأ التسوق الآن{% endif %}
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تأثيرات حيوية إضافية باستخدام الجافاسكربت
+    document.addEventListener("DOMContentLoaded", function () {
+        // إضافة تأثير تفاعلي (Hover Effect) للبطاقات عند المرور عليها بالفأرة
+        const orderCards = document.querySelectorAll('.order-card');
+        
+        orderCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = "translateY(-4px)";
+                this.style.boxShadow = "0 0.5rem 1rem rgba(0, 0, 0, 0.08)";
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = "translateY(0)";
+                this.style.boxShadow = "none";
+            });
+        });
+    });
+</script>
+{% endblock %}

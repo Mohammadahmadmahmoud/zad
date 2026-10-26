@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if lang == 'en' %}Checkout | Zad Herbal{% else %}إتمام الطلب | زاد للمنتجات العشبية{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- استدعاء مكتبة Stripe JS -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<div class="container my-5" dir="{% if lang == 'en' %}ltr{% else %}rtl{% endif %}">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow border-0 p-4 rounded-4 bg-white">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-success">
+                        {% if lang == 'en' %}Checkout & Payment{% else %}إتمام الشراء والدفع{% endif %}
+                    </h3>
+                    <p class="text-muted small">
+                        {% if lang == 'en' %}Please enter delivery details and choose payment method{% else %}يرجى إدخال بيانات التوصيل واختيار طريقة الدفع المناسبة{% endif %}
+                    </p>
+                </div>
+
+                <form id="payment-form" method="POST">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <!-- الاسم الكامل -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-secondary small">{{ form.full_name.label }}</label>
+                            {{ form.full_name }}
+                        </div>
+
+                        <!-- البريد الإلكتروني -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-secondary small">{{ form.email.label }}</label>
+                            {{ form.email }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- رقم الهاتف -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-secondary small">{{ form.phone.label }}</label>
+                            {{ form.phone }}
+                        </div>
+
+                        <!-- اختيار الإمارة -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-secondary small">{{ form.emirate.label }}</label>
+                            {{ form.emirate }}
+                        </div>
+                    </div>
+
+                    <!-- العنوان بالتفصيل -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-secondary small">{{ form.address.label }}</label>
+                        {{ form.address }}
+                    </div>
+
+                    <!-- اختيار طريقة الدفع -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark small">
+                            {% if lang == 'en' %}Select Payment Method:{% else %}اختر طريقة الدفع:{% endif %}
+                        </label>
+                        <div class="row g-3">
+                            <!-- الدفع عند الاستلام -->
+                            <div class="col-6">
+                                <div class="form-check custom-option p-3 border rounded-3 bg-light">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="pay_cod" value="cod" checked>
+                                    <label class="form-check-label fw-bold {% if lang == 'en' %}ms-2{% else %}me-2{% endif %} cursor-pointer" for="pay_cod">
+                                        <i class="fas fa-money-bill-wave text-success {% if lang == 'en' %}me-1{% else %}ms-1{% endif %}"></i> 
+                                        {% if lang == 'en' %}Cash on Delivery (COD){% else %}الدفع عند الاستلام (COD){% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- الدفع بالبطاقة البنكية -->
+                            <div class="col-6">
+                                <div class="form-check custom-option p-3 border rounded-3 bg-light">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="pay_card" value="card">
+                                    <label class="form-check-label fw-bold {% if lang == 'en' %}ms-2{% else %}me-2{% endif %} cursor-pointer" for="pay_card">
+                                        <i class="fas fa-credit-card text-primary {% if lang == 'en' %}me-1{% else %}ms-1{% endif %}"></i> 
+                                        {% if lang == 'en' %}Credit Card (Visa / Mastercard){% else %}البطاقة البنكية (Visa / Mastercard){% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- حقول إدخال بطاقة الفيزا/الماستركارد -->
+                    <div id="card-element-container" class="mb-4 p-3 border rounded-3 bg-light" style="display: none;">
+                        <label class="form-label fw-bold text-dark small mb-2">
+                            {% if lang == 'en' %}Card Details:{% else %}بيانات البطاقة البنكية:{% endif %}
+                        </label>
+                        <div id="payment-element" class="p-2 bg-white rounded border">
+                            <!-- سيتم توليد حقول البطاقة هنا -->
+                        </div>
+                        <div id="card-errors" class="text-danger small mt-2" role="alert"></div>
+                    </div>
+
+                    <!-- ملخص المبلغ -->
+                    <div class="bg-light p-3 rounded-3 mb-4">
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span>{% if lang == 'en' %}Products Total:{% else %}مجموع المنتجات:{% endif %}</span>
+                            <span class="fw-bold">{{ subtotal }} {% if lang == 'en' %}AED{% else %}د.إ{% endif %}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small text-muted">
+                            <span>{% if lang == 'en' %}Shipping Fee:{% else %}رسوم التوصيل:{% endif %}</span>
+                            <span>{% if lang == 'en' %}Calculated by Emirate (30 or 50 AED){% else %}تُحسب بناءً على الإمارة (30 أو 50 د.إ){% endif %}</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn btn-success w-100 py-3 fw-bold rounded-3 shadow-sm">
+                        <i class="fas fa-check-circle {% if lang == 'en' %}me-1{% else %}ms-1{% endif %}"></i> 
+                        <span id="btn-text">{% if lang == 'en' %}Confirm and Submit Order{% else %}تأكيد وإرسال الطلب{% endif %}</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const payCod = document.getElementById('pay_cod');
+    const payCard = document.getElementById('pay_card');
+    const cardContainer = document.getElementById('card-element-container');
+    const form = document.getElementById('payment-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const cardErrors = document.getElementById('card-errors');
+
+    payCod.addEventListener('change', function () {
+        if (this.checked) cardContainer.style.display = 'none';
+    });
+
+    payCard.addEventListener('change', function () {
+        if (this.checked) cardContainer.style.display = 'block';
+    });
+
+    // تهيئة Stripe مع تمرير اللغة النشطة (ar أو en) تلقائياً
+    const stripe = Stripe("{{ stripe_public_key }}");
+    const clientSecret = "{{ client_secret }}";
+    let elements;
+
+    if (clientSecret) {
+        elements = stripe.elements({ 
+            clientSecret: clientSecret,
+            locale: "{{ lang }}" // تمرير اللغة (عربي أو إنجليزي لـ Stripe Elements)
+        });
+        const paymentElement = elements.create('payment');
+        paymentElement.mount('#payment-element');
+    }
+
+    form.addEventListener('submit', async function (e) {
+        if (payCard.checked) {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            cardErrors.textContent = '';
+
+            const { error, paymentIntent } = await stripe.confirmPayment({
+                elements,
+                redirect: 'if_required'
+            });
+
+            if (error) {
+                cardErrors.textContent = error.message;
+                submitBtn.disabled = false;
+            } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+                const formData = new FormData(form);
+                const response = await fetch("{% url 'checkout_view' %}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = "/order-success/" + data.tracking_number + "/";
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

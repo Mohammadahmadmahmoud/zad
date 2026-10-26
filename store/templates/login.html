@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تسجيل الدخول | زاد للمنتجات العشبية{% endblock %}
+
+{% block content %}
+<style>
+    /* تنسيقات CSS الإضافية والجمالية */
+    .login-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .login-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.08) !important;
+    }
+    /* توحيد تنسيق الحقول الجمالية */
+    .form-control {
+        padding: 12px 15px;
+        border-radius: 0.5rem;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease;
+    }
+    .form-control:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.15);
+    }
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+    .btn-success {
+        transition: all 0.2s ease;
+    }
+    .btn-success:active {
+        transform: scale(0.98);
+    }
+</style>
+
+<div class="container my-5 py-4" dir="{% if lang == 'en' %}ltr{% else %}rtl{% endif %}">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card login-card shadow-lg border-0 p-4 rounded-4">
+                <div class="text-center mb-4">
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 65px; height: 65px;">
+                        <i class="fas fa-sign-in-alt fs-4"></i>
+                    </div>
+                    <h3 class="fw-bold text-success">تسجيل الدخول</h3>
+                    <p class="text-muted small">أدخل بريدك الإلكتروني وكلمة المرور للمتابعة</p>
+                </div>
+                
+                <form method="POST" id="clientLoginForm">
+                    {% csrf_token %}
+                    
+                    {% if form.errors and not form.non_field_errors %}
+                        <div class="alert alert-danger small py-2.5 rounded-3 text-center shadow-sm">
+                            <i class="fas fa-exclamation-circle me-1"></i> البريد الإلكتروني أو كلمة المرور غير صحيحة.
+                        </div>
+                    {% endif %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small py-2.5 rounded-3 text-center shadow-sm">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- حقل اسم المستخدم أو البريد الإلكتروني -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary">البريد الإلكتروني / اسم المستخدم</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0 rounded-start-3"><i class="fas fa-envelope text-muted"></i></span>
+                            {{ form.username }}
+                        </div>
+                        {{ form.username.errors }}
+                    </div>
+                    
+                    <!-- حقل كلمة المرور مع زر إظهار/إخفاء -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">كلمة المرور</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0 rounded-start-3"><i class="fas fa-key text-muted"></i></span>
+                            {{ form.password }}
+                            <button class="btn btn-outline-secondary border-start-0 rounded-end-3 px-3" type="button" id="togglePassword" title="إظهار/إخفاء كلمة المرور">
+                                <i class="fas fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                        {{ form.password.errors }}
+                    </div>
+
+                    <!-- زر الدخول مع تفاعلية التحميل -->
+                    <button type="submit" id="submitBtn" class="btn btn-success w-100 py-2.5 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2">
+                        <span id="btnText">دخول</span>
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                </form>
+
+                <div class="mt-4 text-center small text-muted">
+                    ليس لديك حساب؟ <a href="{% url 'register_view' %}" class="text-success fw-bold text-decoration-none">أنشئ حساباً جديداً</a>
+                </div>
+                <div class="mb-3 text-end">
+    <a href="{% url 'password_reset' %}" class="text-success small text-decoration-none">
+        نسيت كلمة المرور؟
+    </a>
+    
+</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. حقن كلاسات Bootstrap تلقائياً لحقول Django البرمجية
+        const formInputs = document.querySelectorAll('input[type="text"], input[type="password"], input[type="email"]');
+        formInputs.forEach(input => {
+            if (!input.classList.contains('form-control')) {
+                input.classList.add('form-control');
+            }
+            if(input.parentElement.classList.contains('input-group')) {
+                input.classList.add('border-start-0');
+            }
+        });
+
+        // 2. تفعيل زر إظهار/إخفاء كلمة المرور
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordField = document.querySelector('input[type="password"]');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        if (togglePassword && passwordField) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                
+                // تبديل شكل الأيقونة
+                eyeIcon.classList.toggle('fa-eye');
+                eyeIcon.classList.toggle('fa-eye-slash');
+            });
+        }
+
+        // 3. تفعيل حيوية زر الإرسال وإظهار حالة التحميل عند الضغط
+        const clientLoginForm = document.getElementById('clientLoginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+
+        if(clientLoginForm) {
+            clientLoginForm.addEventListener('submit', function(e) {
+                submitBtn.disabled = true;
+                btnText.innerHTML = 'جاري تسجيل الدخول...';
+                
+                const spinner = document.createElement('span');
+                spinner.className = 'spinner-border spinner-border-sm ms-2';
+                spinner.setAttribute('role', 'status');
+                submitBtn.prepend(spinner);
+            });
+        }
+    });
+</script>
+{% endblock %}
