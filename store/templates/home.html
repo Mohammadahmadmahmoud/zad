@@ -299,6 +299,15 @@
             });
         });
     });
+    document.addEventListener("DOMContentLoaded", function () {
+    const heroVideo = document.querySelector('header video');
+    if (heroVideo) {
+        heroVideo.play().catch(error => {
+            console.log("Auto-play was prevented by browser policy:", error);
+            // إظهار تحكمات بديلة أو التعامل مع الحظر إذا لزم الأمر
+        });
+    }
+});
 </script>
 
 {% endblock %}
