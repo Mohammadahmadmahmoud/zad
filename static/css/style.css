@@ -1,71 +1,206 @@
-/* استيراد خط كايرو (Cairo Font) من Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
-
-/* تطبيق خط كايرو على كامل المتجر وتنسيق الخلفية العامة */
-body {
-    font-family: 'Cairo', sans-serif !important;
-    background-color: #f9fbf9;
-    color: #333;
-}
+/* استيراد خط كايرو المطور */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap');
 
 :root {
-    --primary-green: #3d7a46;
-    --dark-green: #274e2d;
-    --accent-glow: #00ffcc;
+    --brand-emerald: #0b3c26;
+    --brand-gold: #d4af37;
+    --brand-light-green: #2e7d32;
+    --brand-accent: #ff4757;
+    --bg-surface: #f3f6f4;
+    --card-shadow: 0 15px 35px rgba(11, 60, 38, 0.08);
 }
 
-.navbar {
-    background-color: #f9fbf9;
+body {
+    font-family: 'Cairo', sans-serif !important;
+    background-color: var(--bg-surface);
+    color: #1a2521;
+    overflow-x: hidden; /* لمنع أي شريط تمرير أفقي */
+}
+
+/* --- النافبار الفاخر الشفاف --- */
+.custom-transparent-navbar {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(11, 60, 38, 0.08);
+    transition: all 0.3s ease;
 }
 
 .navbar-brand img {
-    height: 45px;
+    height: 48px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
 }
 
-.btn-success {
-    background-color: var(--primary-green);
-    border-color: var(--primary-green);
+.nav-link-blue {
+    color: var(--brand-emerald) !important;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+    position: relative;
+    padding: 8px 12px !important;
 }
 
-.btn-success:hover {
-    background-color: var(--dark-green);
-    border-color: var(--dark-green);
+.nav-link-blue::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--brand-gold);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
 }
 
-/* السلايدر الفلاشي المضيء للمنتجات التي عليها خصم */
+.nav-link-blue:hover::after {
+    width: 80%;
+}
+
+/* --- الهيدر الرئيسي بعرض الشاشة 100% --- */
+.hero-fullwidth-wrapper {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+}
+
+.video-hero-container {
+    min-height: 85vh; /* يغطي أغلب ارتفاع الشاشة ليعطي طابعاً مهيباً */
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+.hero-glass-card {
+    background: rgba(11, 60, 38, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 2.5rem;
+    max-width: 800px;
+}
+
+/* --- سلايدر التصنيفات الدائرية الفاخرة --- */
+.categories-slider-wrapper {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 24px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.category-card {
+    background: #ffffff !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(11, 60, 38, 0.08) !important;
+    box-shadow: var(--card-shadow);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+.category-card:hover {
+    transform: translateY(-8px) scale(1.02) !important;
+    border-color: var(--brand-gold) !important;
+    box-shadow: 0 20px 40px rgba(11, 60, 38, 0.15) !important;
+}
+
+.category-img-wrapper {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f9fbf9, #e8f0ea);
+    border: 3px solid var(--brand-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    overflow: hidden;
+    padding: 8px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+}
+
+.category-img-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.4s ease;
+}
+
+.category-card:hover .category-img-wrapper img {
+    transform: scale(1.15) rotate(3deg);
+}
+
+/* --- سلايدر العروض الفلاشية (Flash Deals) --- */
 .flash-slider-container {
-    background: linear-gradient(135deg, #1b3820, #3d7a46);
-    border-radius: 15px;
-    padding: 30px;
+    background: linear-gradient(135deg, #072618 0%, #0c432b 50%, #156340 100%) !important;
+    border-radius: 28px !important;
+    padding: 35px 25px;
     color: white;
-    box-shadow: 0 0 25px rgba(0, 255, 204, 0.4);
-    border: 2px solid var(--accent-glow);
-    animation: borderGlow 2s infinite alternate;
+    box-shadow: 0 15px 40px rgba(7, 38, 24, 0.3);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    position: relative;
 }
 
-@keyframes borderGlow {
-    from { box-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
-    to { box-shadow: 0 0 25px rgba(0, 255, 204, 0.7); }
+.temu-flash-badge {
+    background: linear-gradient(45deg, #ff4757, #ff6b81) !important;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255,255,255,0.3);
 }
 
-.flash-badge {
-    background-color: #ff4757;
-    color: white;
-    animation: flashBadge 1s infinite alternate;
+/* --- كاردات المنتجات الفاخرة --- */
+.temu-flash-card {
+    background: #ffffff !important;
+    border-radius: 20px !important;
+    border: none !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    transition: all 0.35s ease !important;
+    overflow: hidden;
 }
 
-@keyframes flashBadge {
-    from { opacity: 0.6; }
-    to { opacity: 1; transform: scale(1.05); }
+.temu-flash-card:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
 }
 
-.product-card {
+.flash-img-wrapper {
+    height: 180px;
+    background: #f8faf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    position: relative;
+}
+
+.flash-img-wrapper img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    transition: transform 0.4s ease;
+}
+
+.temu-flash-card:hover .flash-img-wrapper img {
+    transform: scale(1.1);
+}
+
+/* --- الأزرار المخصصة الجذابة --- */
+.btn-emerald {
+    background: linear-gradient(135deg, var(--brand-emerald), var(--brand-light-green));
+    color: #ffffff !important;
     border: none;
-    transition: transform 0.3s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border-radius: 50rem !important;
+    font-weight: 700;
+    padding: 10px 24px;
+    box-shadow: 0 6px 18px rgba(11, 60, 38, 0.25);
+    transition: all 0.3s ease;
 }
 
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+.btn-emerald:hover {
+    background: linear-gradient(135deg, #062316, var(--brand-emerald));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(11, 60, 38, 0.35);
 }

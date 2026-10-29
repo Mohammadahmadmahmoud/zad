@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load static %}
 <!DOCTYPE html>
-    <html lang="{{ request.session.lang|default:'ar' }}" dir="{% if request.session.lang == 'en' %}ltr{% else %}rtl{% endif %}">
+<html lang="{{ request.session.lang|default:'ar' }}" dir="{% if request.session.lang == 'en' %}ltr{% else %}rtl{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,93 +9,63 @@
     
     <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <!-- Font Awesome للأيقونات -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ربط ملف التنسيقات المنفصل -->
+    <!-- ملف التنسيقات المحدث -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
-    <style>
-        /* تنسيق النافبار لتكون شفافة وبتصميم زجاجي عصري */
-        .custom-transparent-navbar {
-            background: rgba(255, 255, 255, 0.85) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        /* تلوين الروابط باللون الأزرق */
-        .navbar-nav .nav-link-blue {
-            color: #006622 !important;
-            font-weight: 600;
-            transition: color 0.2s ease;
-        }
-        .navbar-nav .nav-link-blue:hover {
-            color: #03a118 !important;
-        }
-    </style>
 
     {% block extra_head %}{% endblock %}
 </head>
 <body>
 
-    <!-- شريط التنقل العلوي (Navbar) بشفافية وخلفية زجاجية -->
-    <nav class="navbar navbar-expand-lg custom-transparent-navbar shadow-sm sticky-top">
-        <div class="container">
-            <!-- الشعار واسم المتجر (أقصى اليمين) -->
+    <!-- النافبار الفاخر الشفاف بعرض الشاشة -->
+    <nav class="navbar navbar-expand-lg custom-transparent-navbar sticky-top py-2">
+        <div class="container-fluid px-md-5">
+            <!-- الشعار -->
             <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home_view' %}">
                 <img src="{% static 'images/logo.png' %}" alt="Zad Logo">
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- الروابط الرئيسية في المنتصف (الرئيسية، المقالات، السلة) وبطابع أزرق -->
-                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center gap-3">
+                <!-- الروابط -->
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center gap-2">
                     <li class="nav-item">
                         <a class="nav-link nav-link-blue" href="{% url 'home_view' %}">{% if lang == 'en' %}Home{% else %}الرئيسية{% endif %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-blue" href="#">{% if request.session.lang  == 'en' %}BLOGS{% else %}المقالات{% endif %}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-blue" href="#">{% if request.session.lang == 'en' %}ِABOUT{% else %}من نحن{% endif %}</a>
-                    </li>
-                    <li class="nav-item">
-    <a class="nav-link nav-link-blue" href="{% url 'shop_products' %}?lang={{ lang }}">
-        {% if request.session.lang == 'en' %}PRODUCTS{% else %}المنتجات{% endif %}
-    </a>
-</li>
-                    
-                    <li class="nav-item">
-                        <a href="{% url 'cart_view' %}" class="btn btn-outline-success position-relative ms-2">
-                            <i class="fas fa-shopping-cart"></i> 
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count-badge">
-                                {% if request.session.cart %}
-                                    {{ request.session.cart.values|length }}
-                                {% else %}
-                                    0
-                                {% endif %}
-                                <span class="visually-hidden">منتجات في السلة</span>
-                            </span>
+                        <a class="nav-link nav-link-blue" href="{% url 'shop_products' %}?lang={{ lang }}">
+                            {% if request.session.lang == 'en' %}Products{% else %}المنتجات{% endif %}
                         </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-blue" href="#">{% if request.session.lang == 'en' %}Blogs{% else %}المقالات{% endif %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-blue" href="#">{% if request.session.lang == 'en' %}About{% else %}من نحن{% endif %}</a>
                     </li>
                 </ul> 
 
-                <!-- أقصى اليسار: قائمة المستخدم المنسدلة ومحول اللغة مجتمعين -->
+                <!-- السلة، المستخدم واللغة -->
                 <div class="d-flex align-items-center gap-3 ms-lg-auto">
+                    <a href="{% url 'cart_view' %}" class="btn btn-light position-relative rounded-circle shadow-sm p-2 text-success" style="width: 42px; height: 42px;">
+                        <i class="fas fa-shopping-bag fs-5"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count-badge">
+                            {% if request.session.cart %}{{ request.session.cart.values|length }}{% else %}0{% endif %}
+                        </span>
+                    </a>
+
                     {% if user.is_authenticated %}
-                        <!-- قائمة منسدلة لاسم المستخدم (الطلبات، لوحة التحكم، الخروج) -->
                         <div class="dropdown">
-                            <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2 py-1 px-3 rounded-pill shadow-sm border" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2 py-1 px-3 rounded-pill shadow-sm border" type="button" id="userDropdown" data-bs-toggle="dropdown">
                                 <i class="fas fa-user-circle text-success fs-5"></i>
-                                <span class="small fw-bold text-dark ">{{ user.first_name|default:user.username }}</span>
+                                <span class="small fw-bold text-dark">{{ user.first_name|default:user.username }}</span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-2" aria-labelledby="userDropdown">
-                                <li class="px-1 py-1 text-muted small border-bottom mb-1">
-                                    <span class="d-block text-truncate" style="max-width: 180px;margin-left: 25px; font-weight:bold;color: green;">{{ user.username }}</span>
-                                </li>   
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 py-2" aria-labelledby="userDropdown">
                                 <li>
                                     <a class="dropdown-item py-2 fw-semibold text-success" href="{% url 'my_orders' %}">
                                         <i class="fas fa-box text-success me-2"></i> {% if request.session.lang == 'en' %}My Orders{% else %}طلباتي{% endif %}
@@ -120,89 +90,41 @@
                             </ul>
                         </div>
                     {% else %}
-                        <div class="d-flex align-items-center gap-7">
-                            <a href="{% url 'login_view' %}" class="btn btn-sm btn-outline-primary fw-semibold">
-                                <i class="fas fa-sign-in-alt"></i> {% if lang == 'en' %}Login{% else %} الدخول{% endif %}
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="{% url 'login_view' %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold">
+                                {% if lang == 'en' %}Login{% else %}الدخول{% endif %}
                             </a>
-                            <a href="{% url 'register_view' %}" class="btn btn-sm btn-primary fw-semibold">
-                                <i class="fas fa-user-plus"></i> {% if lang == 'en' %}Register{% else %}إنشاء حساب{% endif %}
+                            <a href="{% url 'register_view' %}" class="btn btn-sm btn-emerald px-3">
+                                {% if lang == 'en' %}Register{% else %}حساب جديد{% endif %}
                             </a>
                         </div>
                     {% endif %}
 
-                    <div class="border-start ps-3 border-secondary-subtle">
+                    <div class="border-start ps-2">
                         {% if lang == 'en' %}
                             <a href="?lang=ar" class="text-success text-decoration-none small fw-bold">العربية</a>
                         {% else %}
                             <a href="?lang=en" class="text-success text-decoration-none small fw-bold">English</a>
                         {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- محتوى الصفحات الفرعية -->
+    <!-- المحتوى الرئيسي -->
     <main>
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
 
-    <!-- الفوتر الثابت -->
-    <footer class="bg-dark text-white text-center py-4 mt-5">
-        <p class="mb-0 small">&copy; 2026 Zad Herbal (زاد للمنتجات العشبية). {% if lang == 'en' %}All rights reserved - Cash on Delivery in UAE{% else %}جميع الحقوق محفوظة - الدفع عند الاستلام في الإمارات{% endif %}</p>
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white text-center py-4 mt-5 border-top border-success">
+        <p class="mb-0 small text-light">&copy; 2026 Zad Herbal (زاد للمنتجات العشبية). جميع الحقوق محفوظة - الدفع عند الاستلام في الإمارات 🇦🇪</p>
     </footer>
 
-    <!-- Bootstrap 5 JS -->
+    <!-- Bootstrap 5 JS & SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- مكتبة التنبيهات المنبثقة SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- كود الـ AJAX للإضافة الفورية للسلة وتحديث العداد -->
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const addForms = document.querySelectorAll('.ajax-cart-form');
-
-        addForms.forEach(form => {
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const url = this.action;
-                const formData = new FormData(this);
-
-                fetch(url, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        const cartBadge = document.querySelector('.cart-count-badge');
-                        if (cartBadge) {
-                            cartBadge.childNodes[0].nodeName === "#text" 
-                                ? cartBadge.firstChild.textContent = data.cart_count 
-                                : cartBadge.textContent = data.cart_count;
-                        }
-
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'success',
-                            title: data.message,
-                            showConfirmButton: false,
-                            timer: 2000,
-                            timerProgressBar: true
-                        });
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            });
-        });
-    });
-    </script>
-
     {% block extra_js %}{% endblock %}
 </body>
 </html>
