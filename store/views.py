@@ -553,11 +553,11 @@ Zad Herbal Team
         print(f"Error sending confirmation email: {e}")
 
 
-
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Product, Order  # استيراد الموديلات المطلوبة
+from django.db.models import Sum
+from .models import Product, Order, Expense  # تأكد من استيراد النماذج المطلوبة
 
 @csrf_exempt
 def ai_chat_api(request):
@@ -571,9 +571,38 @@ def ai_chat_api(request):
                 return JsonResponse({'status': 'error', 'reply': 'الرسالة فارغة'}, status=400)
 
             bot_reply = ""
+            is_admin = request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser)
 
-            # 1. الاستفسار عن الطلبات وتتبعها
-            if any(w in user_msg_lower for w in ["طلب", "طلبي", "طلبات", "طلبية", "وصول", "حالة", "order"]):
+            # 🛠️ 0. إذا كان المستخدم أدمن (مشرف)، استعلامات ذكية ومباشرة من قاعدة البيانات
+            if is_admin and any(w in user_msg_lower for w in ["أرباح", "ارباح", "مبيعات", "مصروفات", "مصاريف", "صافي", "إحصائيات", "احصائيات", "ملخص", "تقرير", "كم منتج", "كم طلب", "admin", "revenue", "profit"]):
+                orders = Order.objects.all()
+                expenses = Expense.objects.all()
+                
+                # حساب الإيرادات والمصروفات والأرباح بدقة مطابقة للوحة التحكم
+                total_revenue = Decimal('0.00')
+                for order in orders:
+                    if order.status == 'Not Delivered':
+                        total_revenue -= order.grand_total
+                    else:
+                        total_revenue += order.grand_total
+
+                total_expenses = expenses.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+                net_profit = float(total_revenue) - float(total_expenses)
+                
+                products_count = Product.objects.count()
+                orders_count = orders.count()
+
+                if any(w in user_msg_lower for w in ["أرباح", "ارباح", "صافي", "profit"]):
+                    bot_reply = f"📊 أهلاً بك يا مدير النظام! صافي الأرباح الحالية في المتجر هو: **{net_profit:,.2f} درهم** (بعد خصم المصروفات)."
+                elif any(w in user_msg_lower for w in ["مبيعات", "إيرادات", "revenue"]):
+                    bot_reply = f"💰 إجمالي المبيعات الإكلينيكية المسجلة: **{total_revenue:,.2f} درهم** عبر {orders_count} طلب."
+                elif any(w in user_msg_lower for w in ["مصروفات", "مصاريف", "expenses"]):
+                    bot_reply = f"📉 إجمالي المصروفات التشغيلية المسجلة: **{total_expenses:,.2f} درهم**."
+                else:
+                    bot_reply = f"📈 **الملخص الإداري السريع لمتجر زاد:**\n- إجمالي المبيعات: {total_revenue:,.2f} د.إ\n- إجمالي المصروفات: {total_expenses:,.2f} د.إ\n- صافي الربح: {net_profit:,.2f} د.إ\n- عدد المنتجات المتوفرة: {products_count}\n- إجمالي الطلبات: {orders_count}"
+
+            # 1. الاستفسار عن الطلبات وتتبعها (للعملاء العاديين)
+            elif any(w in user_msg_lower for w in ["طلب", "طلبي", "طلبات", "طلبية", "وصول", "حالة", "order"]):
                 if request.user.is_authenticated:
                     user_email = request.user.email
                     latest_order = Order.objects.filter(email=user_email).order_by('-created_at').first()
@@ -586,7 +615,7 @@ def ai_chat_api(request):
                             'Delivered': 'تم التوصيل ✅'
                         }
                         current_status = status_map.get(latest_order.status, latest_order.status)
-                        order_code = getattr(latest_order, 'order_id', latest_order.id)
+                        order_code = getattr(latest_order, 'order_id', latest_order.tracking_number)
                         bot_reply = f"📦 أهلاً بك يا {request.user.first_name or request.user.username}! طلبك الأخير رقم ({order_code}) حالته حالياً: {current_status}."
                     else:
                         bot_reply = "📦 ليس لديك أي طلبات سابقة مسجلة بهذا البريد الإلكتروني حتى الآن."
@@ -595,13 +624,16 @@ def ai_chat_api(request):
 
             # 2. الاستفسار عن الشحن والتوصيل والدفع
             elif any(w in user_msg_lower for w in ["توصيل", "شحن", "دفع", "امارات", "إمارات", "رسوم"]):
-                bot_reply = "🚚 نوفر خدمة التوصيل السريع لجميع إمارات الدولة، والدفع المتاح هو **الدفع عند الاستلام (Cash on Delivery)**."
+                bot_reply = "🚚 نوفر خدمة التوصيل السريع لجميع إمارات الدولة، والدفع المتاح هو **الدفع عند الاستلام (Cash on Delivery)** أو بطاقات البنك."
 
             # 3. التحية والترحيب
             elif any(w in user_msg_lower for w in ["مرحبا", "مرحباً", "السلام", "اهلا", "أهلا", "هلا"]):
-                bot_reply = "أهلاً بك في متجر زاد للمنتجات العشبية! 🌿 كيف يمكنني مساعدتك اليوم في اختيار منتجاتنا أو تتبع طلبك؟"
+                if is_admin:
+                    bot_reply = "أهلاً بك يا سيادة المدير 🌿! أنا مساعدك الذكي المتصل مباشرة بقاعدة بيانات 'زاد'. يمكنك سؤالي عن الأرباح، المبيعات، المصروفات، أو إحصائيات المتجر."
+                else:
+                    bot_reply = "أهلاً بك في متجر زاد للمنتجات العشبية! 🌿 كيف يمكنني مساعدتك اليوم في اختيار منتجاتنا أو تتبع طلبك؟"
 
-            # 4. البحث في المنتجات عند السؤال عن صنف محدد (مثل: عسل، شامبو، بابونج، زيت...)
+            # 4. البحث في المنتجات عند السؤال عن صنف محدد
             else:
                 products = Product.objects.all()
                 matched_products = []
@@ -609,15 +641,13 @@ def ai_chat_api(request):
                 for p in products:
                     name_ar = getattr(p, 'name_ar', '')
                     name_en = getattr(p, 'name_en', '')
-                    # مطابقة اسم المنتج مع كلمة البحث
                     if any(word in name_ar.lower() for word in user_msg_lower.split() if len(word) > 2) or \
                        any(word in name_en.lower() for word in user_msg_lower.split() if len(word) > 2):
-                        matched_products.append(f"- {name_ar}: السعر {p.price} درهم")
+                        matched_products.append(f"- {name_ar}: السعر {p.price} درهم (المخزون: {p.stock})")
 
                 if matched_products:
                     bot_reply = f"🌿 نعم، وجدنا لك المنتجات التالية المتعلقة بـ '{user_message}':\n" + "\n".join(matched_products[:3])
                 else:
-                    # في حال لم يتم العثور على المنتج أو كان السؤال عاماً
                     sample_products = "\n".join([f"- {p.name_ar} ({p.price} درهم)" for p in products[:3]])
                     bot_reply = f"أهلاً بك في متجر زاد 🌿! يمكنك البحث عن منتج معين أو تصفح تشكيلتنا المميزة:\n{sample_products}\n\nنوفر التوصيل لجميع الإمارات والدفع عند الاستلام!"
 
@@ -630,7 +660,7 @@ def ai_chat_api(request):
             print(f"Chat Logic Error: {e}")
             return JsonResponse({
                 'status': 'success',
-                'reply': 'أهلاً بك في متجر زاد للمنتجات العشبية. كيف يمكنني مساعدتك اليوم؟'
+                'reply': 'أهلاً بك في نظام زاد. كيف يمكنني مساعدتك اليوم؟'
             })
 
     return JsonResponse({'status': 'error', 'reply': 'Invalid method'}, status=405)
