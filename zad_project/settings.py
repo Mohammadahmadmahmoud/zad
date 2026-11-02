@@ -1,7 +1,23 @@
 import os
 import sys
 from pathlib import Path
+# --- ضمان وجود سجل Site تلقائياً لمنع خطأ DoesNotExist ---
+from django.db.backends.signals import connection_created
+from django.dispatch import receiver
 
+@receiver(connection_created)
+def ensure_site_exists(sender, **kwargs):
+    try:
+        from django.contrib.sites.models import Site
+        Site.objects.update_or_create(
+            pk=1,
+            defaults={
+                'domain': 'zad-8v04.onrender.com',
+                'name': 'Zad Herbal'
+            }
+        )
+    except Exception:
+        pass
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
