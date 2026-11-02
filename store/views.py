@@ -21,6 +21,9 @@ import io
 from django.core.mail import EmailMessage
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+import json
+import google.generativeai as genai
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -548,3 +551,86 @@ Zad Herbal Team
         email.send(fail_silently=True)
     except Exception as e:
         print(f"Error sending confirmation email: {e}")
+
+
+
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Product, Order  # استيراد الموديلات المطلوبة
+
+@csrf_exempt
+def ai_chat_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_message = data.get('message', '').strip()
+            user_msg_lower = user_message.lower()
+            
+            if not user_message:
+                return JsonResponse({'status': 'error', 'reply': 'الرسالة فارغة'}, status=400)
+
+            bot_reply = ""
+
+            # 1. الاستفسار عن الطلبات وتتبعها
+            if any(w in user_msg_lower for w in ["طلب", "طلبي", "طلبات", "طلبية", "وصول", "حالة", "order"]):
+                if request.user.is_authenticated:
+                    user_email = request.user.email
+                    latest_order = Order.objects.filter(email=user_email).order_by('-created_at').first()
+                    
+                    if latest_order:
+                        status_map = {
+                            'Pending': 'قيد المعالجة ⏳',
+                            'Processing': 'قيد التجهيز 🛠️',
+                            'Shipped': 'تم الشحن 🚚',
+                            'Delivered': 'تم التوصيل ✅'
+                        }
+                        current_status = status_map.get(latest_order.status, latest_order.status)
+                        order_code = getattr(latest_order, 'order_id', latest_order.id)
+                        bot_reply = f"📦 أهلاً بك يا {request.user.first_name or request.user.username}! طلبك الأخير رقم ({order_code}) حالته حالياً: {current_status}."
+                    else:
+                        bot_reply = "📦 ليس لديك أي طلبات سابقة مسجلة بهذا البريد الإلكتروني حتى الآن."
+                else:
+                    bot_reply = "🔒 يرجى تسجيل الدخول إلى حسابك أولاً لنتمكن من تتبع طلباتك بدقة."
+
+            # 2. الاستفسار عن الشحن والتوصيل والدفع
+            elif any(w in user_msg_lower for w in ["توصيل", "شحن", "دفع", "امارات", "إمارات", "رسوم"]):
+                bot_reply = "🚚 نوفر خدمة التوصيل السريع لجميع إمارات الدولة، والدفع المتاح هو **الدفع عند الاستلام (Cash on Delivery)**."
+
+            # 3. التحية والترحيب
+            elif any(w in user_msg_lower for w in ["مرحبا", "مرحباً", "السلام", "اهلا", "أهلا", "هلا"]):
+                bot_reply = "أهلاً بك في متجر زاد للمنتجات العشبية! 🌿 كيف يمكنني مساعدتك اليوم في اختيار منتجاتنا أو تتبع طلبك؟"
+
+            # 4. البحث في المنتجات عند السؤال عن صنف محدد (مثل: عسل، شامبو، بابونج، زيت...)
+            else:
+                products = Product.objects.all()
+                matched_products = []
+                
+                for p in products:
+                    name_ar = getattr(p, 'name_ar', '')
+                    name_en = getattr(p, 'name_en', '')
+                    # مطابقة اسم المنتج مع كلمة البحث
+                    if any(word in name_ar.lower() for word in user_msg_lower.split() if len(word) > 2) or \
+                       any(word in name_en.lower() for word in user_msg_lower.split() if len(word) > 2):
+                        matched_products.append(f"- {name_ar}: السعر {p.price} درهم")
+
+                if matched_products:
+                    bot_reply = f"🌿 نعم، وجدنا لك المنتجات التالية المتعلقة بـ '{user_message}':\n" + "\n".join(matched_products[:3])
+                else:
+                    # في حال لم يتم العثور على المنتج أو كان السؤال عاماً
+                    sample_products = "\n".join([f"- {p.name_ar} ({p.price} درهم)" for p in products[:3]])
+                    bot_reply = f"أهلاً بك في متجر زاد 🌿! يمكنك البحث عن منتج معين أو تصفح تشكيلتنا المميزة:\n{sample_products}\n\nنوفر التوصيل لجميع الإمارات والدفع عند الاستلام!"
+
+            return JsonResponse({
+                'status': 'success',
+                'reply': bot_reply
+            })
+
+        except Exception as e:
+            print(f"Chat Logic Error: {e}")
+            return JsonResponse({
+                'status': 'success',
+                'reply': 'أهلاً بك في متجر زاد للمنتجات العشبية. كيف يمكنني مساعدتك اليوم؟'
+            })
+
+    return JsonResponse({'status': 'error', 'reply': 'Invalid method'}, status=405)
