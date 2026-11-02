@@ -22,7 +22,7 @@ from django.core.mail import EmailMessage
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import json
-import google.generativeai as genai
+
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
