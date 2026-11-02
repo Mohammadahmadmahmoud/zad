@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('store.urls')),
+    path('accounts/', include('allauth.urls')),
 ]
 
 # إضافة مسارات الوسائط والملفات الثابتة في وضع التطوير بشكل صحيح وآمن
